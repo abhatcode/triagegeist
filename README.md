@@ -34,18 +34,6 @@ CDC's National Hospital Ambulatory Medical Care Survey (NHAMCS, 2018 to 2022).
 These come from the last full run on Kaggle (version 9, on a GPU). The notebook in this
 repository is saved without outputs, so running it again is the way to see them.
 
-High-risk flag (ESI 1-2) on the synthetic validation split:
-
-| Model | Sensitivity | Precision | PR-AUC | Brier | Alert rate |
-|---|---|---|---|---|---|
-| Structured, all features | 0.980 | 0.993 | 0.999 | 0.005 | 20.5% |
-| Structured, without the leaky scores | 0.980 | 0.992 | 0.999 | 0.005 | 20.6% |
-| TF-IDF + logistic regression (text) | 0.981 | 1.000 | 1.000 | 0.000 | 20.4% |
-| Ensemble (text + structured) | 0.980 | 1.000 | 1.000 | 0.000 | 20.4% |
-| Bio_ClinicalBERT (text) | 0.983 | 1.000 | 1.000 | 0.000 | 20.5% |
-
-Other results from the same run:
-
 - On the real NHAMCS visits, quadratic-weighted kappa dropped from 0.999 to 0.372 and the
   high-risk ROC-AUC from 1.000 to 0.760. For comparison, agreement between human triage nurses
   is usually reported at around 0.6 to 0.8 kappa. Isotonic recalibration raised the Brier skill
@@ -56,6 +44,31 @@ Other results from the same run:
   escalation gate sent 4.9% of cases to a clinician.
 - Overall undertriage was 0.5%. No demographic group was missed significantly more often than
   the others. Age group came closest (p = 0.051).
+
+## Figures from the Kaggle run
+
+The two engineered scores separate high-risk patients almost on their own (single-feature AUC
+of 0.995 for `news2_score` and 0.911 for `shock_index`), so the notebook treats them as leakage.
+
+![Leakage check on the engineered scores](images/leakage_check.png)
+
+Nothing is missing for ESI 1 and 2 patients, while blood pressure, respiratory rate and pain
+score go missing at ESI 3 to 5, so a missing value tells the model something about the label.
+
+![Missing vital signs by ESI level](images/missingness.png)
+
+The share of high-risk patients is close to 21% in every group, so differences in
+undertriage between groups cannot be put down to different base rates.
+
+![High-risk rate by sex, age group, language and insurance](images/high_risk_by_group.png)
+
+Median vitals, comorbidities, disposition and complaint keywords all line up with the ESI level.
+
+![Vitals, comorbidities, disposition and keywords by ESI level](images/clinical_heatmaps.png)
+
+The escalation gate sends the least confident 4.9% of validation cases to a clinician.
+
+![Escalation gate on the validation split](images/escalation_gate.png)
 
 ## Running it on Kaggle
 
